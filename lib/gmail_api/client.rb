@@ -10,6 +10,7 @@ module GmailApi
       @access_token = access_token
       @refresh_token = refresh_token
       fail AccessTokenMissing.new('Access token is required') if access_token.nil?
+      authorization
       client
     end
 
@@ -22,19 +23,24 @@ module GmailApi
     def execute(api_method, params={})
       result = __execute__(api_method, params)
       if result.status == 401
-        fail ExpiredToken.new('access token needs to be updated')
+        result = refresh_and_retry_execution(api_method, params)
       end
       result
     end
 
     def authorization
-      authorization = GmailApi.client_secrets.to_authorization
-      authorization.update_token!(
+      @authorization ||= GmailApi.client_secrets.to_authorization
+      @authorization.update_token!(
         access_token: access_token,
         refresh_token: refresh_token
       )
-      authorization
+      @authorization
     end   
+
+    def refresh_and_retry_execution(api_method, params)
+      @authorization.refresh!
+      __execute__(api_method, params)    
+    end
 
     def messages(parameters={})
       Message.list(self, parameters)
@@ -46,7 +52,7 @@ module GmailApi
         @client.execute(
           api_method: api_method,
           parameters: params.merge('userId' => 'me'),
-          authorization: authorization
+          authorization: @authorization
         )
       end
 
