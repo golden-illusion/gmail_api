@@ -22,7 +22,7 @@ module GmailApi
     def execute(api_method, params={})
       result = __execute__(api_method, params)
       if result.status == 401
-        result = refresh_and_retry_execution(api_method, params)
+        fail ExpiredToken.new('access token needs to be updated')
       end
       result
     end
@@ -35,11 +35,6 @@ module GmailApi
       )
       authorization
     end   
-
-    def refresh_and_retry_execution(api_method, params)
-      @client.authorization.fetch_access_token!
-      __execute__(api_method, params)    
-    end
 
     def messages(parameters={})
       Message.list(self, parameters)
