@@ -35,7 +35,7 @@ module GmailApi
         refresh_token: refresh_token
       )
       @authorization
-    end   
+    end
 
     def refresh_and_retry_execution(api_method, params)
       @authorization.refresh!
