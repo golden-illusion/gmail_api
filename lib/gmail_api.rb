@@ -36,6 +36,10 @@ module GmailApi
     @@client_secrets ||= Google::APIClient::ClientSecrets.new(@@secrets)
   end
 
+  def self.configured?
+    @@configured
+  end
+
   def self.configure
     yield(self)
     @@configured = true
