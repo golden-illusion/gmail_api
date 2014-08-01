@@ -16,6 +16,7 @@ module GmailApi
 
     def client
       @client ||= GmailApi.client
+      fail NotConfigured.new('configure gmail api') unless @client.configured?
       @client.authorization.clear_credentials!
       @client
     end

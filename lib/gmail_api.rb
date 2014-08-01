@@ -7,6 +7,16 @@ require 'google/api_client/client_secrets'
 
 module GmailApi
 
+  #
+  # Some configuration is required to use GmailApi, add a configuration block like:
+  #
+  #  GmailApi.configure do |conf|
+  #    # secrets file is required by google api client gem to get access to your google app
+  #    # for more information on secrets file go to https://developers.google.com/api-client-library/ruby/guide/aaa_client_secrets
+  #    conf.secrets_file = 'secrets file location'
+  #  end
+  #
+
   @@configured = false
 
   def self.configured?
