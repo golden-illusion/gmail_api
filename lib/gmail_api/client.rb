@@ -20,10 +20,10 @@ module GmailApi
       @client
     end
 
-    def execute(api_method, params={})
-      result = __execute__(api_method, params)
+    def execute(api_method, params={}, options={})
+      result = __execute__(api_method, params, options)
       if result.status == 401
-        result = refresh_and_retry_execution(api_method, params)
+        result = refresh_and_retry_execution(api_method, params, options)
       end
       result
     end
@@ -37,9 +37,9 @@ module GmailApi
       @authorization
     end
 
-    def refresh_and_retry_execution(api_method, params)
+    def refresh_and_retry_execution(api_method, params, options)
       @authorization.refresh!
-      __execute__(api_method, params)    
+      __execute__(api_method, params, options)    
     end
 
     def messages(parameters={})
@@ -48,12 +48,13 @@ module GmailApi
 
     private
 
-      def __execute__(api_method, params={})
-        @client.execute(
+      def __execute__(api_method, params={}, options={})
+        options.merge!(
           api_method: api_method,
           parameters: params.merge('userId' => 'me'),
           authorization: @authorization
         )
+        @client.execute(options)
       end
 
   end  

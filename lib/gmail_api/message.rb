@@ -1,4 +1,5 @@
 require 'base64'
+require 'mime'
 
 module GmailApi
 
@@ -54,13 +55,23 @@ module GmailApi
       end
     end
 
-    def self.create(options={}) 
 
+    # options
+    #   to: sender
+    #   subject: email subject
+    #   body:    email content in plain text 
+
+    def self.create(client, options={})
+      message = MIME::Mail.new
+      options.each { |k,v| message.__send__("#{k}=", v) }
+      # need to use this because of ruby reserved word send
+      method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == 'send' }
+      client.execute(method, {}, body_object: { raw: Base64.urlsafe_encode64(message.to_s) } )
     end
 
-    def initialize(response)
+    def initialize(response=nil)
       @response = response
-      @message = JSON(@response.body)
+      @message = response && JSON(response.body) || {}
     end
 
     def trash
@@ -86,9 +97,19 @@ module GmailApi
     private
 
       def find_content(content_type)
-        part = @message['payload']['parts'].find { |hash| hash['mimeType'] =~ /#{content_type}/ } || {}
-        body = part.fetch('body', {})
+        body = fetch_body || fetch_part_body(content_type)
         body.fetch('data', '')
+      end
+
+      def fetch_body
+        body = @message['payload']['body']
+        return if body['size'] == 0
+        body
+      end
+
+      def fetch_part_body(content_type)
+        part = @message['payload']['parts'] && @message['payload']['parts'].find { |hash| hash['mimeType'] =~ /#{content_type}/ } || {}
+        part.fetch('body', {})
       end
 
   end
