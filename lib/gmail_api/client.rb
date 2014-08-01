@@ -46,6 +46,10 @@ module GmailApi
       Message.list(self, parameters)
     end
 
+    def create_message(params={})
+      Message.create(self, params)
+    end
+
     private
 
       def __execute__(api_method, params={}, options={})

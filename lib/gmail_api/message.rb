@@ -55,7 +55,6 @@ module GmailApi
       end
     end
 
-
     # options
     #   to: sender
     #   subject: email subject
