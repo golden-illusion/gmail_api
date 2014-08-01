@@ -26,7 +26,7 @@ module GmailApi
   @@configured = false
   @@secrets = {}
 
-  def self.secrets(options={})
+  def self.secrets=(options={})
     @@secrets = { web: options }
   end
 
