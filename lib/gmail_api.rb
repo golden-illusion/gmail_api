@@ -27,7 +27,7 @@ module GmailApi
   @@secrets = {}
 
   def self.secrets=(options={})
-    @@secrets = { web: options }
+    @@secrets = { 'web' => options }
   end
 
   def self.client_secrets
