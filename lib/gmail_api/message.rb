@@ -81,8 +81,24 @@ module GmailApi
       @message['snippet']
     end
 
+    def raw_content
+      find_content('text/plain')
+    end
+
+    def from
+      find_header_hash('from')['value']
+    end
+
+    def to
+      find_header_hash('to')['value']
+    end
+
+    def cc
+      find_header_hash('cc')['value']
+    end
+
     def content
-      Base64.urlsafe_decode64 find_content('text/plain')
+      Base64.urlsafe_decode64 raw_content
     end
 
     def html_content
@@ -94,6 +110,10 @@ module GmailApi
     end
 
     private
+
+      def find_header_hash(name)
+        raw['payload']['headers'].find {|h| h['name'].downcase == name } || {}
+      end
 
       def find_content(content_type)
         body = fetch_body || fetch_part_body(content_type)
