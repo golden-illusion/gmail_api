@@ -97,6 +97,10 @@ module GmailApi
       find_header_hash('cc')['value']
     end
 
+    def thread_id
+      raw['threadId']
+    end
+
     def content
       Base64.urlsafe_decode64 raw_content
     end
