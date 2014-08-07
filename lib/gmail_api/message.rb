@@ -36,6 +36,16 @@ module GmailApi
 
   class Message
 
+    ##
+    # available methods:
+    #   cc: Gmail Message CC header
+    #   from: Gmail Message FROM header
+    #   to:  Gmail Message TO header
+    #   raw_content: Encoded email body
+    #   content: Decoded email body in plain text
+    #   thread_id: Gmail Message THREAD header
+    ##
+
     attr_accessor :id, :response
 
     #  List valid parameters:
@@ -99,6 +109,10 @@ module GmailApi
 
     def thread_id
       raw['threadId']
+    end
+
+    def labels
+      raw['labelIds']
     end
 
     def content
