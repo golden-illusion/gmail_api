@@ -1,6 +1,7 @@
 require "gmail_api/version"
 require 'gmail_api/errors'
 require 'gmail_api/client'
+require 'gmail_api/label'
 require 'gmail_api/message'
 require 'google/api_client'
 require 'google/api_client/client_secrets'

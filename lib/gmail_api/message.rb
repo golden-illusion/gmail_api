@@ -46,7 +46,7 @@ module GmailApi
     #   thread_id: Gmail Message THREAD header
     ##
 
-    attr_accessor :id, :response
+    attr_accessor :id, :response, :client
 
     #  List valid parameters:
     #   includeSpamTrash  => boolean Include messages from SPAM and TRASH in the results. (Default: false)
@@ -60,7 +60,7 @@ module GmailApi
     end
 
     def self.find(client, id)
-      new( client.execute(GmailApi.api.users.messages.get, id: id, format: 'full') ).tap do |m|
+      new(client, client.execute(GmailApi.api.users.messages.get, id: id, format: 'full') ).tap do |m|
         m.id = m.raw['id']
       end
     end
@@ -78,9 +78,10 @@ module GmailApi
       client.execute(method, {}, body_object: { raw: Base64.urlsafe_encode64(message.to_s) } )
     end
 
-    def initialize(response=nil)
+    def initialize(client=nil, response=nil)
+      @client   = client
       @response = response
-      @message = response && JSON(response.body) || {}
+      @message  = response && JSON(response.body) || {}
     end
 
     def trash
@@ -112,7 +113,7 @@ module GmailApi
     end
 
     def labels
-      raw['labelIds']
+      Label.find_collection(client, raw['labelIds']).map(&:name)
     end
 
     def content
