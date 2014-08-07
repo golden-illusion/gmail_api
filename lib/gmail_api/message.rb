@@ -41,6 +41,7 @@ module GmailApi
     #   cc: Gmail Message CC header
     #   from: Gmail Message FROM header
     #   to:  Gmail Message TO header
+    #   subject:  Gmail Message subject header
     #   raw_content: Encoded email body
     #   content: Decoded email body in plain text
     #   thread_id: Gmail Message THREAD header
@@ -114,6 +115,10 @@ module GmailApi
 
     def labels
       Label.find_collection(client, raw['labelIds']).map(&:name)
+    end
+
+    def subject
+      find_header_hash('subject')['value']
     end
 
     def content
