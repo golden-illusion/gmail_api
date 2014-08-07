@@ -11,19 +11,20 @@ module GmailApi
     end
 
     def initialize(response)
-      @raw_label = response
+      @response = response
+      @raw      = response && JSON(response.body) || {}
     end
 
     def name
-      @raw_label['name']
+      @raw['name']
     end
 
     def id
-      @raw_label['id']
+      @raw['id']
     end
 
     def type
-      @raw_label['type']
+      @raw['type']
     end
 
 
