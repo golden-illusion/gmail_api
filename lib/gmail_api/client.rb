@@ -42,6 +42,19 @@ module GmailApi
       __execute__(api_method, params, options)    
     end
 
+    def execute_batch(calls, &block)
+      batch = Google::APIClient::BatchRequest.new do |result|
+        yield(result)
+      end
+      @authorization.refresh!
+      @client.authorization = @authorization
+      calls.each do |c| 
+        c[:authorization] = @authorization
+        batch.add(c)
+      end
+      @client.execute(batch)
+    end
+
     def messages(parameters={})
       Message.list(self, parameters)
     end

@@ -3,11 +3,16 @@ module GmailApi
   class Label
 
     def self.find_collection(client, ids)
-      ids.reject { |id| id =~ /INBOX|CATEGORY_/ }.map { |id| find(client, id) }
+      calls = ids.reject { |id| id =~ /INBOX|CATEGORY_|STARRED|SENT/ }.map { |id| { api_method: GmailApi.api.users.labels.get, parameters: { id: id, 'userId'=>'me' }  } }
+      labels = []
+      client.execute_batch(calls) do |result|
+        labels << Label.new(result)
+      end
+      labels
     end
       
     def self.find(client, id)
-      new client.execute(GmailApi.api.users.labels.get, id: id)
+      new client.execute()
     end
 
     def initialize(response)
