@@ -108,6 +108,10 @@ module GmailApi
       @message['snippet']
     end
 
+    def id
+      @id ||= raw['id']
+    end
+
     def raw_content
       find_content('text/plain')
     end
