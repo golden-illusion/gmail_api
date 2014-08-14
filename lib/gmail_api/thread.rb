@@ -2,18 +2,10 @@ module GmailApi
 
   class Thread
 
-    def self.list(client, parameters={})
-      calls = []
-      threads = []
-      response = client.execute(GmailApi.api.users.threads.list, parameters)
-      body = JSON(response.body)
-      body['threads'].each do |thread|
-        calls << { api_method: GmailApi.api.users.threads.get, parameters: { id: thread['id'], format: 'full', 'userId'=>'me' } }
+    def self.list(client, parameters={}) 
+      Collection.new(client, client.execute(GmailApi.api.users.threads.list, parameters), 'threads' ) do |client, result|
+        Thread.new(client, result)
       end
-      client.execute_batch(calls) do |result|
-        threads << Thread.new(client, result)
-      end
-      threads
     end
 
     def initialize(client, result)

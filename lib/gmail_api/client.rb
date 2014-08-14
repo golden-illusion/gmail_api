@@ -66,11 +66,15 @@ module GmailApi
     private
 
       def __execute__(api_method, params={}, options={})
-        options.merge!(
-          api_method: api_method,
-          parameters: params.merge('userId' => 'me'),
-          authorization: @authorization
-        )
+        if api_method.is_a?(Google::APIClient::Request)
+          options = api_method
+        else
+          options.merge!(
+            api_method: api_method,
+            parameters: params.merge('userId' => 'me'),
+            authorization: @authorization
+          )          
+        end
         @client.execute(options)
       end
 

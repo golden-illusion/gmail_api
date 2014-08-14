@@ -18,7 +18,7 @@ module GmailApi
     end
       
     def self.find(client, id)
-      new client.execute()
+      new client.execute(GmailApi.api.users.labels.get, parameters: { id: id })
     end
 
     def initialize(response)

@@ -3,52 +3,6 @@ require 'mime'
 
 module GmailApi
 
-  class Messages
-    include Enumerable
-
-    def self.list(client, parameters={})
-      new( client, client.execute(GmailApi.api.users.messages.list, parameters) ).get_messages
-    end
-
-    attr_accessor :messages, :response
-
-    def initialize(client, response)
-      @client   = client
-      @messages = []
-      @response = JSON(response.body)
-    end
-
-    def get_messages
-      @client.execute_batch(add_batch_calls) do |result|
-        @messages << Message.new(@client, result)
-      end
-      self    
-    end
-
-    def add_batch_calls
-      [].tap do |ary|
-        @response['messages'].each do |m|
-          ary << { api_method: GmailApi.api.users.messages.get, parameters: { id: m['id'], format: 'full', 'userId'=>'me' } }
-        end
-      end
-    end
-
-    def each
-      if block_given?
-        @messages.each do |message|
-          yield(message)
-        end
-      else
-        Enumerator.new(@messages)
-      end
-    end
-
-    def next
-      self.class.list(@client, 'pageToken' => @response['nextPageToken'] )
-    end
-
-  end
-
   class Message
 
     ##
@@ -72,7 +26,9 @@ module GmailApi
     #   q                 => string  Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
 
     def self.list(client, parameters={})
-      Messages.list(client, parameters)
+      Collection.new( client, client.execute(GmailApi.api.users.messages.list, parameters), 'messages' ) do |client, result|
+        Message.new(@client, result)
+      end
     end
 
     def self.find(client, id)
