@@ -38,6 +38,10 @@ module GmailApi
       end
     end
 
+    def next_page?
+      @response.next_page_token.nil?
+    end
+
   end
   
 end
