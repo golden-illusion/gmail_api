@@ -59,6 +59,10 @@ module GmailApi
       Message.list(self, parameters)
     end
 
+    def threads(parameters={})
+      Thread.list(self, parameters)
+    end
+
     def send_mail(params={})
       Message.create(self, params)
     end
