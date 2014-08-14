@@ -15,7 +15,7 @@ module GmailApi
       fail "Block must be given"   unless block_given?
 
 
-      @batched_results = get_batched_results
+      @batched_results = get_batched_results(&block)
 
     end
 
@@ -43,8 +43,8 @@ module GmailApi
 
     private
 
-    def get_batched_results
-      return if JSON(@response.body)['resultSizeEstimate'] > 0
+    def get_batched_results(&block)
+      return unless JSON(@response.body)['resultSizeEstimate'] > 0
       @batched_results = @client.execute_batch(calls) do |result|
         @collection << yield(@client, result)
       end
