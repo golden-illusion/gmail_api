@@ -14,9 +14,8 @@ module GmailApi
       fail "Calls cannot be emtpy" if calls.empty?
       fail "Block must be given"   unless block_given?
 
-      @batch_results = @client.execute_batch(calls) do |result|
-        @collection << yield(@client, result)
-      end
+
+      @batched_results = get_batched_results
 
     end
 
@@ -40,6 +39,15 @@ module GmailApi
 
     def next_page?
       @response.next_page_token.nil?
+    end
+
+    private
+
+    def get_batched_results
+      return if JSON(@response.body)['resultSizeEstimate'] > 0
+      @batched_results = @client.execute_batch(calls) do |result|
+        @collection << yield(@client, result)
+      end
     end
 
   end
