@@ -89,7 +89,7 @@ module GmailApi
     end
 
     def labels
-      Label.find_collection(client, raw['labelIds']).map(&:name)
+      raw['labelIds'] && Label.find_collection(client, raw['labelIds']).map(&:name) || []
     end
 
     def subject

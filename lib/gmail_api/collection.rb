@@ -11,7 +11,7 @@ module GmailApi
       @response = response
       @block = block
       
-      fail "Calls cannot be emtpy" if calls.empty?
+      #fail "Calls cannot be emtpy" if calls.empty?
       fail "Block must be given"   unless block_given?
 
 
@@ -20,6 +20,7 @@ module GmailApi
     end
 
     def calls
+      return [] unless JSON(@response.body)[@resource]
       JSON(@response.body)[@resource].map do |resource|
         { api_method: GmailApi.api.users.__send__(@resource).get, parameters: { id: resource['id'], format: 'full', 'userId'=>'me' } }
       end
@@ -38,13 +39,13 @@ module GmailApi
     end
 
     def next_page?
-      @response.next_page_token.nil?
+      calls.any? && @response.next_page_token.nil?
     end
 
     private
 
     def get_batched_results(&block)
-      return unless JSON(@response.body)['resultSizeEstimate'] > 0
+      return if calls.empty?
       @batched_results = @client.execute_batch(calls) do |result|
         @collection << yield(@client, result)
       end
