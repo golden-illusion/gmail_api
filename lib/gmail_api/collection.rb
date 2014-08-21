@@ -2,6 +2,8 @@ module GmailApi
 
   class Collection
     include Enumerable
+
+    attr_reader :collection, :resource, :response
     
     def initialize(client, response, resource, &block)
       
@@ -36,6 +38,10 @@ module GmailApi
       self.class.new(@client, @client.execute(@response.next_page), @resource) do |client, result|
         @block.call(client, result)
       end
+    end
+
+    def next_page_token
+      @response.next_page_token
     end
 
     def next_page?
