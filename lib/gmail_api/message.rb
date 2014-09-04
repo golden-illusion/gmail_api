@@ -73,15 +73,24 @@ module GmailApi
     end
 
     def from
-      find_header_hash('from')['value']
+      find_header_hash('from')
     end
 
     def to
-      find_header_hash('to')['value']
+      find_header_hash('to')
     end
 
     def cc
-      find_header_hash('cc')['value']
+      find_header_hash('cc')
+    end
+
+    def cc
+      find_header_hash('cc')
+    end
+
+    def date
+      date = find_header_hash('date')
+      date && DateTime.parse(date)
     end
 
     def thread_id
@@ -93,7 +102,7 @@ module GmailApi
     end
 
     def subject
-      find_header_hash('subject')['value']
+      find_header_hash('subject')
     end
 
     def content
@@ -111,7 +120,8 @@ module GmailApi
     private
 
       def find_header_hash(name)
-        raw['payload']['headers'].find {|h| h['name'].downcase == name } || {}
+        header = raw['payload']['headers'].find {|h| h['name'].downcase == name } || {}
+        header['value']
       end
 
       def find_content(content_type)
