@@ -3,7 +3,7 @@ module GmailApi
   class Label
 
     def self.find_collection(client, ids)
-      calls = ids.reject { |id| id =~ /INBOX|CATEGORY_|STARRED|SENT/ }.map { |id| { api_method: GmailApi.api.users.labels.get, parameters: { id: id, 'userId'=>'me' }  } }
+      calls = ids.reject { |id| id =~ /INBOX|CATEGORY_|STARRED|SENT|UNREAD/ }.map { |id| { api_method: GmailApi.api.users.labels.get, parameters: { id: id, 'userId'=>'me' }  } }
       get_batched_labels(client, calls)
     end
 
