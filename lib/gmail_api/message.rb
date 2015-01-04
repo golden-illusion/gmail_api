@@ -25,8 +25,8 @@ module GmailApi
     #   pageToken         => string  Page token to retrieve a specific page of results in the list.
     #   q                 => string  Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
 
-    def self.list(client, parameters={})
-      Collection.new( client, client.execute(GmailApi.api.users.messages.list, parameters), 'messages' ) do |client, result|
+    def self.list(client, parameters={}, options={})
+      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters, options), 'messages') do |client, result|
         Message.new(@client, result)
       end
     end
@@ -40,7 +40,7 @@ module GmailApi
     # options
     #   to: sender
     #   subject: email subject
-    #   body:    email content in plain text 
+    #   body:    email content in plain text
 
     def self.create(client, options={})
       message = MIME::Mail.new
