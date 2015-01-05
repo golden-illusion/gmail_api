@@ -2,7 +2,7 @@ module GmailApi
 
   class Thread
 
-    def self.list(client, parameters={}) 
+    def self.list(client, parameters={})
       Collection.new(client, client.execute(GmailApi.api.users.threads.list, parameters), 'threads' ) do |client, result|
         Thread.new(client, result)
       end
@@ -15,7 +15,7 @@ module GmailApi
     end
 
     def messages
-      @messages ||= get_messages  
+      @messages ||= get_messages
     end
 
     def id
@@ -31,5 +31,5 @@ module GmailApi
     end
 
   end
-  
+
 end

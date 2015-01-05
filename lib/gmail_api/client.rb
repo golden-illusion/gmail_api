@@ -39,7 +39,9 @@ module GmailApi
 
     def refresh_and_retry_execution(api_method, params, options)
       @authorization.refresh!
-      __execute__(api_method, params, options)    
+      __execute__(api_method, params, options)
+    rescue ::Signet::AuthorizationError => e
+      return e.response.body
     end
 
     def execute_batch(calls, &block)
@@ -48,15 +50,15 @@ module GmailApi
       end
       @authorization.refresh!
       @client.authorization = @authorization
-      calls.each do |c| 
+      calls.each do |c|
         c[:authorization] = @authorization
         batch.add(c)
       end
       @client.execute(batch)
     end
 
-    def messages(parameters={})
-      Message.list(self, parameters)
+    def messages(parameters={}, options={})
+      Message.list(self, parameters, options)
     end
 
     def threads(parameters={})
@@ -65,6 +67,10 @@ module GmailApi
 
     def send_mail(params={})
       Message.create(self, params)
+    end
+
+    def user_profile
+      User.user_profile self
     end
 
     private
@@ -77,10 +83,10 @@ module GmailApi
             api_method: api_method,
             parameters: params.merge('userId' => 'me'),
             authorization: @authorization
-          )          
+          )
         end
         @client.execute(options)
       end
 
-  end  
+  end
 end
