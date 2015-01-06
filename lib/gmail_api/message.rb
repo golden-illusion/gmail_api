@@ -25,8 +25,8 @@ module GmailApi
     #   pageToken         => string  Page token to retrieve a specific page of results in the list.
     #   q                 => string  Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
 
-    def self.list(client, parameters={}, options={})
-      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters, options), 'messages') do |client, result|
+    def self.list(client, parameters={})
+      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters), 'messages') do |client, result|
         Message.new(@client, result)
       end
     end
@@ -42,12 +42,13 @@ module GmailApi
     #   subject: email subject
     #   body:    email content in plain text
 
-    def self.create(client, options={})
+    def self.create(client, options={}, thread_id=nil)
       message = MIME::Mail.new
       options.each { |k,v| message.__send__("#{k}=", v) }
       # need to use this because of ruby reserved word send
       method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == 'send' }
-      client.execute(method, {}, body_object: { raw: Base64.urlsafe_encode64(message.to_s) } )
+      binding.pry
+      client.execute(method, {}, body_object: { raw: Base64.urlsafe_encode64(message.to_s), thread_id: thread_id } )
     end
 
     def initialize(client=nil, response=nil)
@@ -115,6 +116,18 @@ module GmailApi
 
     def raw
       @message
+    end
+
+    def message_id
+      find_header_hash('message-id')
+    end
+
+    def references
+      find_header_hash('references')
+    end
+
+    def in_reply_to
+      find_header_hash('in-reply-to')
     end
 
     private

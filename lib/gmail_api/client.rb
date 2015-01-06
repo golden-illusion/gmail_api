@@ -57,16 +57,16 @@ module GmailApi
       @client.execute(batch)
     end
 
-    def messages(parameters={}, options={})
-      Message.list(self, parameters, options)
+    def messages(parameters={})
+      Message.list(self, parameters)
     end
 
     def threads(parameters={})
       Thread.list(self, parameters)
     end
 
-    def send_mail(params={})
-      Message.create(self, params)
+    def send_mail(params={}, thread_id=nil)
+      Message.create(self, params, thread_id)
     end
 
     def user_profile

@@ -4,15 +4,15 @@ module GmailApi
     include Enumerable
 
     attr_reader :collection, :resource, :response
-    
+
     def initialize(client, response, resource, &block)
-      
+
       @client = client
       @collection = []
       @resource = resource
       @response = response
       @block = block
-      
+
       #fail "Calls cannot be emtpy" if calls.empty?
       fail "Block must be given"   unless block_given?
 
@@ -48,6 +48,10 @@ module GmailApi
       calls.any? && @response.next_page_token.nil?
     end
 
+    def count
+      JSON(@response.body)["resultSizeEstimate"]
+    end
+
     private
 
     def get_batched_results(&block)
@@ -58,5 +62,5 @@ module GmailApi
     end
 
   end
-  
+
 end
