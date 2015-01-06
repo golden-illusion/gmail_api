@@ -57,20 +57,39 @@ module GmailApi
       @client.execute(batch)
     end
 
-    def messages(parameters={}, options={})
-      Message.list(self, parameters, options)
+    def messages(parameters={})
+      Message.list(self, parameters)
     end
 
     def threads(parameters={})
       Thread.list(self, parameters)
     end
 
-    def send_mail(params={})
-      Message.create(self, params)
+    def send_mail(params={}, options={}, thread_id=nil)
+      Message.create(self, params, options, thread_id)
     end
 
     def user_profile
       User.user_profile self
+    end
+
+    def create_label request_body={}, headers={}
+      Label.create self, request_body, headers
+    end
+
+    def find type, id
+      type = GmailApi.const_get(type) if GmailApi.const_defined?(type)
+      if type.respond_to? :find
+        type.find(self, id)
+      end
+    end
+
+    def modify_message params={}, options={}
+      Message.modify self, params, options
+    end
+
+    def find_by name: name
+      Label.find_by self, name: name
     end
 
     private
