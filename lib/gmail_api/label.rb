@@ -56,6 +56,7 @@ module GmailApi
       labels.each do |label|
         return label["id"] if name == label["name"]
       end
+      nil
     end
   end
 
