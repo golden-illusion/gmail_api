@@ -21,8 +21,8 @@ module GmailApi
       labels
     end
 
-    def self.find(client, id)
-      new client.execute(GmailApi.api.users.labels.get, id: id)
+    def self.find(client, params={})
+      new client.execute(GmailApi.api.users.labels.get, params)
     end
 
     def self.create client, request_body={}, headers={}

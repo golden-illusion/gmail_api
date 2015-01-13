@@ -1,5 +1,5 @@
-require 'base64'
-require 'mime'
+require "base64"
+require "mime"
 
 module GmailApi
 
@@ -26,14 +26,14 @@ module GmailApi
     #   q                 => string  Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
 
     def self.list(client, parameters={})
-      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters), 'messages') do |client, result|
+      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters), "messages") do |client, result|
         Message.new(@client, result)
       end
     end
 
     def self.find(client, id)
-      new(client, client.execute(GmailApi.api.users.messages.get, id: id, format: 'full') ).tap do |m|
-        m.id = m.raw['id']
+      new(client, client.execute(GmailApi.api.users.messages.get, id: id, format: "full") ).tap do |m|
+        m.id = m.raw["id"]
       end
     end
 
@@ -42,11 +42,14 @@ module GmailApi
     #   subject: email subject
     #   body:    email content in plain text
 
-    def self.create(client, params={}, options={}, thread_id=nil)
-      message = MIME::Mail.new
+    def self.create(client, params={}, options={}, thread_id=nil, attachments)
+      message = Mail.new
       params.each { |k,v| message.__send__("#{k}=", v) }
+      attachments && attachments.each do |attachment|
+        message.add_file filename: attachment.original_filename, content: attachment.read
+      end
       # need to use this because of ruby reserved word send
-      method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == 'send' }
+      method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == "send" }
       options.merge! body_object: { raw: Base64.urlsafe_encode64(message.to_s), threadId: thread_id }
       client.execute(method, {}, options )
     end
@@ -66,48 +69,48 @@ module GmailApi
 
     # Snippet of email content
     def snippet
-      @message['snippet']
+      @message["snippet"]
     end
 
     def id
-      @id ||= raw['id']
+      @id ||= raw["id"]
     end
 
     def raw_content
-      find_content('text/plain')
+      find_content("text/plain")
     end
 
     def from
-      find_header_hash('from')
+      find_header_hash("from")
     end
 
     def to
-      find_header_hash('to')
+      find_header_hash("to")
     end
 
     def cc
-      find_header_hash('cc')
+      find_header_hash("cc")
     end
 
     def cc
-      find_header_hash('cc')
+      find_header_hash("cc")
     end
 
     def date
-      date = find_header_hash('date')
+      date = find_header_hash("date")
       date && DateTime.parse(date)
     end
 
     def thread_id
-      raw['threadId']
+      raw["threadId"]
     end
 
     def labels
-      raw['labelIds'] && Label.find_collection(client, raw['labelIds']).map(&:name) || []
+      raw["labelIds"] && Label.find_collection(client, raw["labelIds"]).map(&:name) || []
     end
 
     def subject
-      find_header_hash('subject')
+      find_header_hash("subject")
     end
 
     def content
@@ -115,7 +118,7 @@ module GmailApi
     end
 
     def html_content
-      Base64.urlsafe_decode64 find_content('text/html')
+      Base64.urlsafe_decode64 find_content("text/html")
     end
 
     def raw
@@ -123,38 +126,51 @@ module GmailApi
     end
 
     def message_id
-      find_header_hash('message-id')
+      find_header_hash("message-id")
     end
 
     def references
-      find_header_hash('references')
+      find_header_hash("references")
     end
 
     def in_reply_to
-      find_header_hash('in-reply-to')
+      find_header_hash("in-reply-to")
+    end
+
+    def attachments
+      return [] unless @message["payload"]["parts"]
+      @message["payload"]["parts"].each_with_object([]) do |part, attachments|
+        next if part["filename"].blank?
+        next unless part["filename"].include? "."
+        attachments << {
+          filename: part["filename"],
+          messageId: self.id,
+          id: part["body"]["attachmentId"]
+        }
+      end
     end
 
     private
 
       def find_header_hash(name)
-        header = raw['payload']['headers'].find {|h| h['name'].downcase == name } || {}
-        header['value']
+        header = raw["payload"]["headers"].find {|h| h["name"].downcase == name } || {}
+        header["value"]
       end
 
       def find_content(content_type)
         body = fetch_body || fetch_part_body(content_type)
-        body.fetch('data', '')
+        body.fetch("data", "")
       end
 
       def fetch_body
-        body = @message['payload']['body']
-        return if body['size'] == 0
+        body = @message["payload"]["body"]
+        return if body["size"] == 0
         body
       end
 
       def fetch_part_body(content_type)
-        part = @message['payload']['parts'] && @message['payload']['parts'].find { |hash| hash['mimeType'] =~ /#{content_type}/ } || {}
-        part.fetch('body', {})
+        part = @message["payload"]["parts"] && @message["payload"]["parts"].find { |hash| hash["mimeType"] =~ /#{content_type}/ } || {}
+        part.fetch("body", {})
       end
 
   end

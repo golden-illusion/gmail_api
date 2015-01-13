@@ -65,8 +65,8 @@ module GmailApi
       Thread.list(self, parameters)
     end
 
-    def send_mail(params={}, options={}, thread_id=nil)
-      Message.create(self, params, options, thread_id)
+    def send_mail(params={}, options={}, thread_id=nil, attachments)
+      Message.create(self, params, options, thread_id, attachments)
     end
 
     def user_profile
@@ -77,11 +77,18 @@ module GmailApi
       Label.create self, request_body, headers
     end
 
-    def find type, id
+    def find type, params={}
       type = GmailApi.const_get(type) if GmailApi.const_defined?(type)
       if type.respond_to? :find
-        type.find(self, id)
+        type.find(self, params)
       end
+    end
+
+    def attachment_name_valid? message_id, filename
+      filenames = Message.find(self, message_id).attachments.map do |attachment|
+        attachment[:filename] if attachment.has_key?(:filename)
+      end
+      filenames.include? filename
     end
 
     def modify_message params={}, options={}

@@ -6,6 +6,7 @@ require 'gmail_api/label'
 require 'gmail_api/thread'
 require 'gmail_api/message'
 require 'gmail_api/user'
+require 'gmail_api/attachment'
 require 'google/api_client'
 require 'google/api_client/client_secrets'
 
