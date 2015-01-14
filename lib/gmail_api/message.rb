@@ -44,7 +44,7 @@ module GmailApi
 
     def self.create(client, params={}, options={}, thread_id=nil, attachments)
       message = Mail.new
-      params.each { |k,v| message.__send__("#{k}=", v) }
+      params.each{|k,v| message.__send__("#{k}=", v)}
       attachments && attachments.each do |attachment|
         message.add_file filename: attachment.original_filename, content: attachment.read
       end
@@ -114,11 +114,15 @@ module GmailApi
     end
 
     def content
-      Base64.urlsafe_decode64 raw_content
+      result = Base64.urlsafe_decode64 raw_content
+      return result if result.present?
+      fetch_from_multi_part "text/plain"
     end
 
     def html_content
-      Base64.urlsafe_decode64 find_content("text/html")
+      result = Base64.urlsafe_decode64 find_content("text/html")
+      return result if result.present?
+      fetch_from_multi_part "text/html"
     end
 
     def raw
@@ -173,6 +177,15 @@ module GmailApi
         part.fetch("body", {})
       end
 
+      def fetch_from_multi_part content_type
+        arr = @message["payload"]["parts"].find do |hash|
+          hash["mimeType"] =~ /multipart\/alternative/
+        end
+        result = arr["parts"].find{|hash|hash["mimeType"] =~ /#{content_type}/}
+        Base64.urlsafe_decode64 result["body"]["data"]
+      rescue
+        ""
+      end
   end
 
 end
