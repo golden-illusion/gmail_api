@@ -99,6 +99,22 @@ module GmailApi
       Label.find_by self, name: name
     end
 
+    def unread_emails label_prefix=""
+      threads = []
+      Message.list(self, {q: "is:unread"}).each_with_object([]) do |m, obj|
+        next if threads.include?(m.thread_id)
+        thread = Thread.new(self, self.execute(GmailApi.api.users.threads.get, {id: m.thread_id}))
+        threads << thread.id
+        label_id = thread.label_start_with(label_prefix)
+        subject = thread.messages.first.subject
+        if label_id
+          obj << {label: label_id, subject: subject, thread_id: thread.id}
+        end
+      end
+    rescue
+      []
+    end
+
     private
 
       def __execute__(api_method, params={}, options={})

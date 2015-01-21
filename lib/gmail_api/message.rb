@@ -24,38 +24,39 @@ module GmailApi
     #   maxResults        => unsigned integer  Maximum number of messages to return.
     #   pageToken         => string  Page token to retrieve a specific page of results in the list.
     #   q                 => string  Only return messages matching the specified query. Supports the same query format as the Gmail search box. For example, "from:someuser@example.com rfc822msgid: is:unread".
-
-    def self.list(client, parameters={})
-      Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters), "messages") do |client, result|
-        Message.new(@client, result)
+    class << self
+      def list(client, parameters={})
+        Collection.new(client, client.execute(GmailApi.api.users.messages.list, parameters), "messages") do |client, result|
+          Message.new(client, result)
+        end
       end
-    end
 
-    def self.find(client, id)
-      new(client, client.execute(GmailApi.api.users.messages.get, id: id, format: "full") ).tap do |m|
-        m.id = m.raw["id"]
+      def find(client, id)
+        new(client, client.execute(GmailApi.api.users.messages.get, id: id, format: "full") ).tap do |m|
+          m.id = m.raw["id"]
+        end
       end
-    end
 
-    # options
-    #   to: sender
-    #   subject: email subject
-    #   body:    email content in plain text
+      # options
+      #   to: sender
+      #   subject: email subject
+      #   body:    email content in plain text
 
-    def self.create(client, params={}, options={}, thread_id=nil, attachments)
-      message = Mail.new
-      params.each{|k,v| message.__send__("#{k}=", v)}
-      attachments && attachments.each do |attachment|
-        message.add_file filename: attachment.original_filename, content: attachment.read
+      def create(client, params={}, options={}, thread_id=nil, attachments)
+        message = Mail.new
+        params.each{|k,v| message.__send__("#{k}=", v)}
+        attachments && attachments.each do |attachment|
+          message.add_file filename: attachment.original_filename, content: attachment.read
+        end
+        # need to use this because of ruby reserved word send
+        method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == "send" }
+        options.merge! body_object: { raw: Base64.urlsafe_encode64(message.to_s), threadId: thread_id }
+        client.execute(method, {}, options )
       end
-      # need to use this because of ruby reserved word send
-      method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == "send" }
-      options.merge! body_object: { raw: Base64.urlsafe_encode64(message.to_s), threadId: thread_id }
-      client.execute(method, {}, options )
-    end
 
-    def self.modify client, params={}, options={}
-      client.execute GmailApi.api.users.messages.modify, params, options
+      def modify client, params={}, options={}
+        client.execute GmailApi.api.users.messages.modify, params, options
+      end
     end
 
     def initialize(client=nil, response=nil)
@@ -152,6 +153,21 @@ module GmailApi
           id: part["body"]["attachmentId"]
         }
       end
+    end
+
+    def unread?
+      raw["labelIds"] && raw["labelIds"].include?("UNREAD")
+    end
+
+    def read?
+      !unread?
+    end
+
+    def read!
+      return if read?
+      options = {body_object: {removeLabelIds: ["UNREAD"]}}
+      result = client.execute GmailApi.api.users.messages.modify, {id: id}, options
+      JSON(result.response.body)["error"] ? fasle : true
     end
 
     private
