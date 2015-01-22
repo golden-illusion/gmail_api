@@ -2,9 +2,15 @@ module GmailApi
 
   class Thread
 
-    def self.list(client, parameters={})
-      Collection.new(client, client.execute(GmailApi.api.users.threads.list, parameters), 'threads' ) do |client, result|
-        Thread.new(client, result)
+    class << self
+      def list(client, parameters={})
+        Collection.new(client, client.execute(GmailApi.api.users.threads.list, parameters), 'threads' ) do |client, result|
+          Thread.new(client, result)
+        end
+      end
+
+      def find(client, params={})
+        new client, client.execute(GmailApi.api.users.threads.get, params)
       end
     end
 
