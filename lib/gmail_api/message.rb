@@ -45,12 +45,13 @@ module GmailApi
       def create(client, params={}, options={}, thread_id=nil, attachments)
         message = Mail.new
         params.each{|k,v| message.__send__("#{k}=", v)}
+        message.header["X-Bcc"] = params[:bcc] if params[:bcc]
         attachments && attachments.each do |attachment|
           message.add_file filename: attachment.original_filename, content: attachment.read
         end
         # need to use this because of ruby reserved word send
         method = GmailApi.api.users.messages.discovered_methods.find {|m| m.name == "send" }
-        options.merge! body_object: { raw: Base64.urlsafe_encode64(message.to_s), threadId: thread_id }
+        options.merge! body_object: { raw: Base64.urlsafe_encode64(message.to_s.sub("X-Bcc", "Bcc")), threadId: thread_id }
         client.execute(method, {}, options )
       end
 
