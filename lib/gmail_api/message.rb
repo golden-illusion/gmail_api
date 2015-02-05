@@ -94,8 +94,8 @@ module GmailApi
       find_header_hash("cc")
     end
 
-    def cc
-      find_header_hash("cc")
+    def bcc
+      find_header_hash("bcc")
     end
 
     def date
